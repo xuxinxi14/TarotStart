@@ -1,0 +1,13 @@
+# Unused draft / legacy prop artwork folders (not referenced by static site)
+已有可用素材/
+assets/divination/art/props/
+assets/divination/art-anime/
+assets/divination/props/
+assets/divination/props-antique/
+
+# OS & temporary backup files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.backup.*
+*.bak
