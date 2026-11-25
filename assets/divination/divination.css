@@ -297,7 +297,7 @@ body.mode-divination .sanctuary-frame {
 /* ==========================================================================
    In-Place 3D Card Lightbox Mode (Dead-Center Exhibition Focus)
    ========================================================================== */
-body.card-lightbox-open > header {
+body.card-lightbox-open .sanctuary-header {
   opacity: 0;
   pointer-events: none;
   transform: translateY(-10px);
@@ -2227,5 +2227,531 @@ body.card-lightbox-open .lightbox-exit-hint {
 @media (max-width: 720px) {
   .sanctuary-header { padding: 0 12px; }
   .sanctuary-brand-cn { display: none; }
+  .angle-hud-chip { display: none !important; }
   .mode-switch-btn { padding: 4px 11px; letter-spacing: 0.14em; }
+}
+
+/* ==========================================================================
+   Mobile Portrait Auto-Landscape Shell & Compact Card Scaling (Divination Only)
+   Showcase Mode remains untouched in natural orientation!
+   ========================================================================== */
+.app-shell {
+  display: contents;
+}
+
+body.mobile-div-rotated {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  width: var(--app-vw, 100vw);
+  height: var(--app-vh, 100dvh);
+}
+
+body.mobile-div-rotated #appShell {
+  display: block;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: var(--land-w, 100dvh);
+  height: var(--land-h, 100vw);
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center center;
+  overflow: hidden;
+  z-index: 12;
+  background: #050407;
+}
+
+body.mobile-div-rotated .divination-view {
+  width: 100%;
+  height: 100%;
+}
+
+body.mobile-div-rotated .fan-viewport {
+  touch-action: none;
+}
+
+/* Unified Compact Landscape Tuning (Auto-Rotated Portrait + Native Landscape Mobile) */
+body.mobile-div-compact .divination-view {
+  height: var(--land-h, 100dvh);
+}
+
+body.mobile-div-compact .reading-table-stage {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+}
+
+body.mobile-div-compact .table-scene-backdrop {
+  background-size: cover;
+}
+
+body.mobile-div-compact .table-room-vignette {
+  box-shadow:
+    inset 0 0 56px 10px rgba(5, 4, 7, 0.68),
+    inset 0 38px 36px -18px rgba(5, 4, 7, 0.80),
+    inset 0 -36px 36px -14px rgba(5, 4, 7, 0.84);
+}
+
+/* Compact Symmetric Header Bar */
+body.mobile-div-compact .sanctuary-header {
+  height: 36px;
+  padding: 0 12px;
+  gap: 8px;
+}
+
+body.mobile-div-compact .sanctuary-brand {
+  gap: 6px;
+}
+
+body.mobile-div-compact .sanctuary-emblem {
+  width: 18px;
+  height: 18px;
+}
+
+body.mobile-div-compact .sanctuary-brand-titles {
+  display: flex !important;
+  gap: 6px;
+}
+
+body.mobile-div-compact .sanctuary-brand-en {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+body.mobile-div-compact .sanctuary-brand-cn {
+  display: none !important;
+}
+
+body.mobile-div-compact .mode-switcher {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  gap: 3px;
+  padding: 2px;
+}
+
+body.mobile-div-compact .mode-switch-btn {
+  padding: 3px 10px;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  gap: 5px;
+}
+
+body.mobile-div-compact .mode-switch-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+body.mobile-div-compact .header-tools {
+  gap: 2px;
+}
+
+body.mobile-div-compact .header-tool-btn {
+  padding: 3px 7px;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  gap: 4px;
+}
+
+body.mobile-div-compact .header-tool-btn.is-spread-trigger {
+  padding: 3px 8px;
+}
+
+body.mobile-div-compact #propsPopoverBtn span {
+  display: inline !important;
+}
+
+body.mobile-div-compact #soundToggleText {
+  display: none !important;
+}
+
+/* Maximized Playable Velvet Canvas Insets */
+body.mobile-div-compact .divination-mat {
+  top: 40px;
+  bottom: 42px;
+  left: 7%;
+  right: 7%;
+}
+
+body.mobile-div-compact .reading-table-stage.table-style-cloth .divination-mat {
+  top: 38px;
+  bottom: 40px;
+  left: 5%;
+  right: 5%;
+}
+
+body.mobile-div-compact .reading-table-stage.is-zoomed-velvet .divination-mat {
+  top: 38px;
+  bottom: 38px;
+  left: 3%;
+  right: 3%;
+}
+
+body.mobile-div-compact .reading-table-stage.stage-fan_draw .divination-mat {
+  top: 38px;
+  bottom: 112px;
+}
+
+body.mobile-div-compact .reading-table-stage.is-zoomed-velvet.stage-fan_draw .divination-mat {
+  top: 36px;
+  bottom: 104px;
+}
+
+/* Controlled Ritual Deck Stack, Shuffle Swarm & 3-Pile Cut Card Sizing */
+body.mobile-div-compact .ritual-deck-stage {
+  gap: 5px;
+}
+
+body.mobile-div-compact .ritual-spread-plate {
+  gap: 1px;
+  margin-bottom: 0;
+}
+
+body.mobile-div-compact .ritual-spread-en {
+  font-size: 7.5px;
+  letter-spacing: 0.28em;
+}
+
+body.mobile-div-compact .ritual-spread-name {
+  font-size: 12px;
+  letter-spacing: 0.22em;
+}
+
+body.mobile-div-compact .ritual-spread-rule {
+  width: 72px;
+  margin-top: 1px;
+}
+
+body.mobile-div-compact .ritual-question-echo {
+  font-size: 9.5px;
+  max-width: 260px;
+}
+
+body.mobile-div-compact .ritual-deck-arena {
+  width: 100%;
+  height: clamp(114px, calc(var(--land-h, 390px) * 0.38), 156px);
+}
+
+body.mobile-div-compact .ritual-deck-stack {
+  height: clamp(106px, calc(var(--land-h, 390px) * 0.36), 146px);
+  width: auto;
+  aspect-ratio: 142 / 212;
+}
+
+body.mobile-div-compact .deck-ground-shadow {
+  left: -10px;
+  right: -14px;
+  top: 8px;
+  bottom: -14px;
+}
+
+body.mobile-div-compact .swarm-card {
+  width: 74px;
+  height: 110px;
+  margin-left: -37px;
+  margin-top: -55px;
+  border-radius: 5px;
+}
+
+body.mobile-div-compact .cut-piles-zone {
+  gap: 22px;
+}
+
+body.mobile-div-compact .cut-pile-btn {
+  height: clamp(100px, calc(var(--land-h, 390px) * 0.33), 132px);
+  width: auto;
+  aspect-ratio: 122 / 182;
+}
+
+body.mobile-div-compact .cut-pile-badge {
+  width: 20px;
+  height: 20px;
+  font-size: 9px;
+  top: -8px;
+  right: -7px;
+}
+
+body.mobile-div-compact .cut-pile-label {
+  bottom: -16px;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+}
+
+body.mobile-div-compact .ritual-deck-status {
+  margin-top: 10px;
+}
+
+body.mobile-div-compact .ritual-status-title {
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+}
+
+/* Controlled Curved Arc Fan Draw Dock */
+body.mobile-div-compact .fan-draw-dock {
+  left: 3%;
+  right: 3%;
+  bottom: 38px;
+  height: 96px;
+  padding: 0 30px 0;
+}
+
+body.mobile-div-compact .fan-guidance-pill {
+  top: -8px;
+  padding: 2px 12px;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  gap: 6px;
+}
+
+body.mobile-div-compact .fan-viewport {
+  height: 92px;
+  padding-top: 22px;
+}
+
+body.mobile-div-compact .fan-rail {
+  height: 68px;
+}
+
+body.mobile-div-compact .fan-card-btn {
+  width: 46px;
+  height: 68px;
+  border-radius: 4px;
+  bottom: 2px;
+}
+
+body.mobile-div-compact .fan-card-btn:hover {
+  transform: translateY(-14px) scale(1.06) rotate(0deg) !important;
+}
+
+body.mobile-div-compact .fan-nav-btn {
+  width: 26px;
+  height: 34px;
+  top: 62%;
+}
+
+/* Spread Slot Labels, Seals & Touch Panning */
+body.mobile-div-compact .spread-board.is-zoomed-in {
+  touch-action: none;
+}
+
+body.mobile-div-compact .slot-placeholder {
+  gap: 3px;
+  padding: 4px;
+}
+
+body.mobile-div-compact .slot-placeholder::before {
+  inset: 3px;
+}
+
+body.mobile-div-compact .slot-corner {
+  width: 7px;
+  height: 7px;
+}
+
+body.mobile-div-compact .slot-order-badge {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}
+
+body.mobile-div-compact .slot-order-rule {
+  width: 12px;
+}
+
+body.mobile-div-compact .slot-placeholder-label {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+body.mobile-div-compact .slot-corner-seal {
+  top: -5px;
+  left: -5px;
+  min-width: 15px;
+  height: 15px;
+  font-size: 7.5px;
+  padding: 0 3px;
+}
+
+body.mobile-div-compact .slot-caption {
+  top: calc(100% + 4px);
+  padding: 1.5px 7px;
+  gap: 4px;
+}
+
+body.mobile-div-compact .slot-cap-pos,
+body.mobile-div-compact .slot-cap-card {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+body.mobile-div-compact .slot-orient-pill {
+  font-size: 8px;
+  line-height: 12px;
+  padding: 0 3px;
+}
+
+/* Slim Bottom Ceremonial Console */
+body.mobile-div-compact .div-action-dock {
+  bottom: 6px;
+  height: 29px;
+  padding: 0 7px;
+  gap: 5px;
+  max-width: 94%;
+}
+
+body.mobile-div-compact .div-action-dock .div-pill-btn {
+  padding: 2px 8px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  gap: 5px;
+}
+
+body.mobile-div-compact .div-action-dock .div-pill-btn.is-gold {
+  padding: 2px 10px;
+}
+
+body.mobile-div-compact .dock-zoom-btn {
+  width: 21px;
+  height: 21px;
+  font-size: 11px;
+}
+
+body.mobile-div-compact .dock-zoom-readout {
+  min-width: 36px;
+  height: 21px;
+  font-size: 9px;
+}
+
+/* Compact Landscape Spread Selector Modal, Instruments Popover & Toast */
+body.mobile-div-compact #spreadModal {
+  padding: 10px 14px !important;
+}
+
+body.mobile-div-compact #spreadModal > .glass-panel {
+  max-height: calc(var(--land-h, 390px) - 20px) !important;
+  max-width: calc(var(--land-w, 844px) - 28px) !important;
+}
+
+body.mobile-div-compact #spreadModal .px-6 {
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+}
+
+body.mobile-div-compact #spreadModal .py-4,
+body.mobile-div-compact #spreadModal .py-3\.5 {
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+}
+
+body.mobile-div-compact #spreadModal .p-6 {
+  padding: 10px 14px !important;
+}
+
+body.mobile-div-compact .spread-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+body.mobile-div-compact .spread-option-card {
+  padding: 7px 8px;
+  gap: 3px;
+}
+
+body.mobile-div-compact .spread-diagram-box {
+  height: 46px;
+  padding: 3px;
+  margin-bottom: 1px;
+}
+
+body.mobile-div-compact .spread-opt-name {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+body.mobile-div-compact .spread-opt-count {
+  font-size: 8.5px;
+}
+
+body.mobile-div-compact .spread-opt-en,
+body.mobile-div-compact .spread-opt-brief {
+  display: none;
+}
+
+body.mobile-div-compact .spread-opt-cat {
+  font-size: 9px;
+  margin-top: 0;
+}
+
+body.mobile-div-compact .ritual-question-wrap {
+  min-width: 150px;
+  max-width: 240px;
+}
+
+body.mobile-div-compact .ritual-question-input {
+  padding: 3px 8px 3px 20px;
+  font-size: 11px;
+}
+
+body.mobile-div-compact .props-popover {
+  top: 40px;
+  right: 10px;
+  width: min(304px, calc(var(--land-w, 844px) - 20px));
+  max-height: calc(var(--land-h, 390px) - 48px);
+  padding: 11px;
+}
+
+body.mobile-div-compact #toast {
+  top: 40px !important;
+  padding: 4px 12px !important;
+  font-size: 10.5px !important;
+  letter-spacing: 0.12em !important;
+}
+
+/* Side-by-Side 3D Lightbox in Compact Landscape */
+body.mobile-div-compact.card-lightbox-open #showcaseView #stageArea {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 10px 24px 36px;
+  flex-direction: row !important;
+  justify-content: center;
+  gap: 32px;
+}
+
+body.mobile-div-compact.card-lightbox-open #showcaseView #stageArea > div {
+  width: auto !important;
+}
+
+body.mobile-div-compact.card-lightbox-open #showcaseView #arcanaPlaque {
+  width: auto;
+  max-width: 260px;
+  margin-bottom: 0 !important;
+  align-items: flex-start;
+  text-align: left;
+}
+
+body.mobile-div-compact.card-lightbox-open #showcaseView #headerCardTitle {
+  font-size: 16px !important;
+  letter-spacing: 0.18em;
+}
+
+body.mobile-div-compact.card-lightbox-open #showcaseView #cardStageBox {
+  transform: scale(1) !important;
+  padding: 0 !important;
+}
+
+body.mobile-div-compact.card-lightbox-open #showcaseView #cardRig {
+  width: clamp(142px, calc((var(--land-h, 390px) - 78px) * 2 / 3), 206px) !important;
+}
+
+body.mobile-div-compact.card-lightbox-open #showcaseView .lightbox-exit-hint {
+  position: absolute;
+  bottom: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 0;
+  font-size: 9.5px;
+  padding: 2px 12px;
+  letter-spacing: 0.18em;
 }

@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>TarotStart · 典藏鎏金塔罗占卜台与 3D 展厅</title>
   <meta name="description" content="TarotStart — 典藏鎏金塔罗线上占卜台与 78 张三图层 3D 全息典藏展厅，纯静态前端交互展示平台。" />
   <meta property="og:title" content="TarotStart · 典藏鎏金塔罗占卜台与 3D 展厅" />
@@ -1386,6 +1386,8 @@
   <!-- Subtle Chamfered Gold Sanctuary Viewport Border -->
   <div class="sanctuary-frame"></div>
 
+  <!-- Mobile Auto-Landscape Shell (display:contents on desktop & Showcase; 90deg landscape in portrait mobile Divination) -->
+  <div id="appShell" class="app-shell">
   <!-- Floating Architectural Sanctuary Header -->
   <header class="sanctuary-header">
     <div class="sanctuary-brand">
@@ -2171,12 +2173,13 @@
     </aside>
   </main>
 
-  <canvas id="fgParticles" class="fixed inset-0 w-full h-full pointer-events-none z-30"></canvas>
-
   <div
     id="toast"
     class="fixed top-[62px] left-1/2 -translate-x-1/2 z-50 px-5 py-2 rounded-[2px] bg-[#09080d]/[0.95] border border-[#c9a668]/40 font-serif-cn text-[11.5px] tracking-[0.16em] text-[#f4e2bc] shadow-[0_14px_40px_rgba(0,0,0,0.84)] opacity-0 pointer-events-none transition-opacity duration-300"
   ></div>
+  </div><!-- /#appShell -->
+
+  <canvas id="fgParticles" class="fixed inset-0 w-full h-full pointer-events-none z-30"></canvas>
 
   <!-- Sotheby's-Style Pure Static 78-Card Deck Catalogue Modal -->
   <div id="deckModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-8 bg-[#030206]/85 backdrop-blur-md">
@@ -2568,13 +2571,20 @@
         }
       }
 
-      // Pointer Interaction
+      // Pointer Interaction (rotation-aware for mobile auto-landscape lightbox)
       function handlePointerMove(clientX, clientY) {
         const rect = cardRig.getBoundingClientRect();
         const cx = rect.left + rect.width * 0.5;
         const cy = rect.top + rect.height * 0.5;
-        const dx = Math.max(-1.25, Math.min(1.25, (clientX - cx) / (rect.width * 0.55)));
-        const dy = Math.max(-1.25, Math.min(1.25, (clientY - cy) / (rect.height * 0.55)));
+        const isRotated = document.body.classList.contains('mobile-div-rotated');
+        const lw = cardRig.clientWidth || rect.width;
+        const lh = cardRig.clientHeight || rect.height;
+        const dsx = clientX - cx;
+        const dsy = clientY - cy;
+        const lx = isRotated ? dsy : dsx;
+        const ly = isRotated ? -dsx : dsy;
+        const dx = Math.max(-1.25, Math.min(1.25, lx / (lw * 0.55)));
+        const dy = Math.max(-1.25, Math.min(1.25, ly / (lh * 0.55)));
 
         state.pointerActive = true;
         state.targetRy = dx * (state.exploded ? 44.0 : 26.0);
@@ -4072,6 +4082,42 @@
         }
       });
 
+      function syncMobileDivinationViewport() {
+        const vv = window.visualViewport;
+        const vw = Math.round(vv ? vv.width : window.innerWidth);
+        const vh = Math.round(vv ? vv.height : window.innerHeight);
+        const isDiv = platformMode === 'divination';
+        const isPortraitPhone = vw < vh && vw <= 768;
+        const isLandscapePhone = vw >= vh && vh <= 540 && vw <= 1024;
+        const shouldRotate = isDiv && isPortraitPhone;
+        const isCompact = isDiv && (shouldRotate || isLandscapePhone);
+
+        root.style.setProperty('--app-vw', `${vw}px`);
+        root.style.setProperty('--app-vh', `${vh}px`);
+        root.style.setProperty('--land-w', `${shouldRotate ? vh : vw}px`);
+        root.style.setProperty('--land-h', `${shouldRotate ? vw : vh}px`);
+
+        const prevRotated = document.body.classList.contains('mobile-div-rotated');
+        const prevCompact = document.body.classList.contains('mobile-div-compact');
+        document.body.classList.toggle('mobile-div-rotated', shouldRotate);
+        document.body.classList.toggle('mobile-div-compact', isCompact);
+
+        if (divinationPlatform && typeof divinationPlatform.onViewportChange === 'function') {
+          if (shouldRotate !== prevRotated || isCompact !== prevCompact || isDiv) {
+            requestAnimationFrame(() => divinationPlatform.onViewportChange());
+          }
+        }
+      }
+
+      window.addEventListener('resize', syncMobileDivinationViewport, { passive: true });
+      window.addEventListener('orientationchange', () => {
+        setTimeout(syncMobileDivinationViewport, 80);
+        setTimeout(syncMobileDivinationViewport, 320);
+      });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', syncMobileDivinationViewport, { passive: true });
+      }
+
       function switchPlatformMode(mode, { fromDivination = false } = {}) {
         if (cardLightboxOpen) {
           cardLightboxOpen = false;
@@ -4082,6 +4128,7 @@
         platformMode = mode === 'showcase' ? 'showcase' : 'divination';
         const isDiv = platformMode === 'divination';
         document.body.classList.toggle('mode-divination', isDiv);
+        syncMobileDivinationViewport();
 
         if (divinationViewEl) divinationViewEl.classList.toggle('hidden', !isDiv);
         if (showcaseViewEl) {

@@ -165,6 +165,14 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
     }
   }
 
+  function isRotatedLandscape() {
+    return document.body.classList.contains('mobile-div-rotated');
+  }
+
+  function isMobileCompact() {
+    return document.body.classList.contains('mobile-div-compact');
+  }
+
   function setBoardZoom(nextZoom, pivotClientX = null, pivotClientY = null, animate = false) {
     const clamped = Math.max(1, Math.min(2.4, nextZoom));
     if (clamped <= 1.01) {
@@ -176,8 +184,11 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
     }
     if (pivotClientX !== null && pivotClientY !== null && dom.mat) {
       const rect = dom.mat.getBoundingClientRect();
-      const cx = pivotClientX - (rect.left + rect.width * 0.5);
-      const cy = pivotClientY - (rect.top + rect.height * 0.5);
+      const dsx = pivotClientX - (rect.left + rect.width * 0.5);
+      const dsy = pivotClientY - (rect.top + rect.height * 0.5);
+      const rotated = isRotatedLandscape();
+      const cx = rotated ? dsy : dsx;
+      const cy = rotated ? -dsx : dsy;
       const ratio = clamped / state.boardZoom;
       state.boardPanX = cx - (cx - state.boardPanX) * ratio;
       state.boardPanY = cy - (cy - state.boardPanY) * ratio;
@@ -199,6 +210,7 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
     const bh = dom.board.clientHeight || 480;
     const slots = spread.slots;
     const isCompact = spread.count >= 5;
+    const isCompactVp = bh < 360 || isMobileCompact();
 
     let minDy = 1;
     let minDx = 1;
@@ -215,27 +227,34 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
     }
 
     const compactClean = isCompact && !state.showAllCaptions;
-    const rowGutter = compactClean ? 12 : 34;
-    const colGutter = isCompact ? 14 : 24;
-    const edgePad = compactClean ? 8 : 22;
-    const desiredH = Math.min(316, Math.max(96, bh * (isCompact ? 0.42 : 0.48) * (spread.cardScale || 1)));
-    const maxHByRows = minDy < 1 ? Math.max(84, minDy * bh - rowGutter) : bh * 0.74;
-    const maxWByCols = minDx < 1 ? Math.max(60, minDx * bw - colGutter) : bw * 0.34;
+    const rowGutter = compactClean ? (isCompactVp ? 5 : 12) : (isCompactVp ? 18 : 34);
+    const colGutter = isCompact ? (isCompactVp ? 7 : 14) : (isCompactVp ? 14 : 24);
+    const edgePad = compactClean ? (isCompactVp ? 4 : 8) : (isCompactVp ? 11 : 22);
+    const minHFloor = isCompactVp ? 46 : 84;
+    const minWFloor = isCompactVp ? 31 : 60;
+
+    const desiredH = isCompactVp
+      ? Math.min(198, bh * 0.72, Math.max(52, bh * (isCompact ? 0.39 : 0.46) * (spread.cardScale || 1)))
+      : Math.min(316, Math.max(96, bh * (isCompact ? 0.42 : 0.48) * (spread.cardScale || 1)));
+    const maxHByRows = minDy < 1 ? Math.max(minHFloor, minDy * bh - rowGutter) : bh * (isCompactVp ? 0.72 : 0.74);
+    const maxWByCols = minDx < 1 ? Math.max(minWFloor, minDx * bw - colGutter) : bw * (isCompactVp ? 0.28 : 0.34);
 
     // Respect top/bottom margins cleanly
     let minEdgeY = 0.5;
     slots.forEach(s => {
       minEdgeY = Math.min(minEdgeY, s.y / 100, (100 - s.y) / 100);
     });
-    const maxHByEdge = Math.max(84, (minEdgeY * bh - edgePad) * 1.94);
+    const maxHByEdge = Math.max(minHFloor, (minEdgeY * bh - edgePad) * 1.94);
 
     // Extra horizontal clearance if spread includes a 90deg crossing card (e.g. Celtic Cross)
     const hasCrossing = slots.some(s => s.isCrossing);
-    const maxHByCrossing = hasCrossing && minDx < 1 ? Math.max(96, (minDx * bw - 14) * 1.18) : 9999;
+    const maxHByCrossing = hasCrossing && minDx < 1
+      ? Math.max(isCompactVp ? 52 : 96, (minDx * bw - (isCompactVp ? 8 : 14)) * 1.18)
+      : 9999;
 
     const h = Math.floor(Math.min(desiredH, maxHByRows, maxHByEdge, maxWByCols * 1.48, maxHByCrossing));
     const w = Math.floor(h / 1.48);
-    return { w: Math.max(60, w), h: Math.max(88, h) };
+    return { w: Math.max(minWFloor, w), h: Math.max(isCompactVp ? 46 : 88, h) };
   }
 
   function applyBoardSizing() {
@@ -390,18 +409,25 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
     dom.board.querySelectorAll('.table-card-scene').forEach((sceneEl) => {
       const slotEl = sceneEl.closest('.spread-slot');
 
-      sceneEl.addEventListener('pointerenter', () => {
-        if (!sceneEl.classList.contains('is-revealed')) return;
+      sceneEl.addEventListener('pointerenter', (e) => {
+        if (e.pointerType === 'touch' || !sceneEl.classList.contains('is-revealed')) return;
         if (slotEl) slotEl.classList.add('is-spotlight');
         if (dom.board && spread.count >= 5) dom.board.classList.add('has-hover-focus');
       });
 
       sceneEl.addEventListener('pointermove', (e) => {
-        if (!sceneEl.classList.contains('is-revealed') || draggingBoard) return;
+        if (e.pointerType === 'touch' || !sceneEl.classList.contains('is-revealed') || draggingBoard) return;
         const rect = sceneEl.getBoundingClientRect();
-        if (rect.width < 10 || rect.height < 10) return;
-        const nx = Math.max(-1, Math.min(1, ((e.clientX - rect.left) / rect.width) * 2 - 1));
-        const ny = Math.max(-1, Math.min(1, ((e.clientY - rect.top) / rect.height) * 2 - 1));
+        const lw = sceneEl.clientWidth || rect.width;
+        const lh = sceneEl.clientHeight || rect.height;
+        if (lw < 10 || lh < 10) return;
+        const dsx = e.clientX - (rect.left + rect.width * 0.5);
+        const dsy = e.clientY - (rect.top + rect.height * 0.5);
+        const rotated = isRotatedLandscape();
+        const lx = rotated ? dsy : dsx;
+        const ly = rotated ? -dsx : dsy;
+        const nx = Math.max(-1, Math.min(1, lx / (lw * 0.5)));
+        const ny = Math.max(-1, Math.min(1, ly / (lh * 0.5)));
         sceneEl.classList.add('is-hovering');
         sceneEl.style.setProperty('--tilt-rx', `${(-ny * 14).toFixed(2)}deg`);
         sceneEl.style.setProperty('--tilt-ry', `${(nx * 16).toFixed(2)}deg`);
@@ -524,12 +550,13 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
     if (AUDIO) AUDIO.playWashShuffle();
 
     const cards = createSwarmCards(22);
+    const mobileScale = isMobileCompact() ? 0.62 : 1;
     // Phase 1: Spread smoothly across velvet cloth
     requestAnimationFrame(() => {
       cards.forEach((el, i) => {
         const angle = (i / cards.length) * Math.PI * 2;
-        const rx = 110 + (i % 3) * 44;
-        const ry = 42 + (i % 4) * 16;
+        const rx = (110 + (i % 3) * 44) * mobileScale;
+        const ry = (42 + (i % 4) * 16) * mobileScale;
         const x = Math.cos(angle) * rx;
         const y = Math.sin(angle) * ry;
         const rot = (Math.random() - 0.5) * 160;
@@ -541,8 +568,8 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
     setTimeout(() => {
       cards.forEach((el, i) => {
         const angle = (i / cards.length) * Math.PI * 2 + 2.35;
-        const rx = 95 + ((i + 1) % 3) * 40;
-        const ry = 36 + ((i + 2) % 3) * 18;
+        const rx = (95 + ((i + 1) % 3) * 40) * mobileScale;
+        const ry = (36 + ((i + 2) % 3) * 18) * mobileScale;
         const x = Math.cos(angle) * rx;
         const y = Math.sin(angle) * ry;
         const rot = 180 + (Math.random() - 0.5) * 140;
@@ -577,12 +604,13 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
     if (AUDIO) AUDIO.playRiffleShuffle();
 
     const cards = createSwarmCards(18);
+    const riffleX = isMobileCompact() ? 76 : 118;
     // Split into left & right halves
     requestAnimationFrame(() => {
       cards.forEach((el, i) => {
         const isLeft = i < 9;
         const idx = isLeft ? i : i - 9;
-        const x = isLeft ? -118 : 118;
+        const x = isLeft ? -riffleX : riffleX;
         const y = -idx * 1.4;
         const rot = isLeft ? -7 : 7;
         el.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rot}deg)`;
@@ -767,19 +795,25 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
     dom.fanGuide.textContent = `${roman} / ${ROMAN_SLOTS[spread.count - 1] || spread.count}  ·  择牌「${nextSlot.label}」`;
   }
 
+  let suppressFanClick = false;
+
   function renderFanCards() {
     if (!dom.fanRail) return;
     const count = state.deckOrder.length;
-    const cardW = 70;
-    const step = count <= 24 ? 30 : (count <= 56 ? 19.5 : 15.5);
+    const compact = isMobileCompact();
+    const cardW = compact ? 46 : 70;
+    const step = compact
+      ? (count <= 24 ? 22 : (count <= 56 ? 15.5 : 13))
+      : (count <= 24 ? 30 : (count <= 56 ? 19.5 : 15.5));
+    const maxLift = compact ? 9 : 16;
     const totalW = cardW + Math.max(0, count - 1) * step;
     dom.fanRail.style.width = `${totalW}px`;
 
     const mid = (count - 1) / 2 || 1;
     dom.fanRail.innerHTML = state.deckOrder.map((_, idx) => {
       const norm = count > 1 ? (idx - mid) / mid : 0; // -1 .. +1
-      const rot = norm * 11.5;
-      const archLift = (1 - norm * norm) * 16;
+      const rot = norm * (compact ? 9.5 : 11.5);
+      const archLift = (1 - norm * norm) * maxLift;
       const left = idx * step;
       const drawn = state.drawnFanIndices.has(idx);
       return `
@@ -794,6 +828,10 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
 
     dom.fanRail.querySelectorAll('.fan-card-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
+        if (suppressFanClick) {
+          suppressFanClick = false;
+          return;
+        }
         const fanIdx = Number(btn.getAttribute('data-fan-idx'));
         drawFromFan(fanIdx);
       });
@@ -1182,8 +1220,9 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
 
       window.addEventListener('pointermove', (e) => {
         if (!draggingBoard) return;
-        const dx = e.clientX - dragStartX;
-        const dy = e.clientY - dragStartY;
+        const rotated = isRotatedLandscape();
+        const dx = rotated ? (e.clientY - dragStartY) : (e.clientX - dragStartX);
+        const dy = rotated ? -(e.clientX - dragStartX) : (e.clientY - dragStartY);
         if (Math.abs(dx) > 5 || Math.abs(dy) > 5) suppressNextCardClick = true;
         state.boardPanX = dragOriginPanX + dx;
         state.boardPanY = dragOriginPanY + dy;
@@ -1224,6 +1263,43 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
           dom.fanViewport.scrollLeft += e.deltaY * 1.1;
         }
       }, { passive: false });
+
+      // Rotation-aware drag-to-scroll for smooth touch/mouse fan swiping on portrait-rotated phones
+      let fanDragging = false;
+      let fanDragStartX = 0;
+      let fanDragStartY = 0;
+      let fanStartScroll = 0;
+
+      dom.fanViewport.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0 && e.pointerType === 'mouse') return;
+        if (!isRotatedLandscape() && e.pointerType === 'touch') return;
+        fanDragging = true;
+        suppressFanClick = false;
+        fanDragStartX = e.clientX;
+        fanDragStartY = e.clientY;
+        fanStartScroll = dom.fanViewport.scrollLeft;
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        if (!fanDragging) return;
+        const delta = isRotatedLandscape()
+          ? (e.clientY - fanDragStartY)
+          : (e.clientX - fanDragStartX);
+        if (Math.abs(delta) > 7) suppressFanClick = true;
+        if (suppressFanClick) {
+          dom.fanViewport.scrollLeft = fanStartScroll - delta;
+        }
+      });
+
+      const endFanDrag = () => {
+        if (!fanDragging) return;
+        fanDragging = false;
+        if (suppressFanClick) {
+          setTimeout(() => { suppressFanClick = false; }, 60);
+        }
+      };
+      window.addEventListener('pointerup', endFanDrag);
+      window.addEventListener('pointercancel', endFanDrag);
     }
 
     if (window.ResizeObserver && dom.board) {
@@ -1288,6 +1364,15 @@ window.createDivinationPlatform = function createDivinationPlatform(bridge) {
     setActive(active) {
       if (propsController) propsController.setActive(active);
       if (active) requestAnimationFrame(() => applyBoardSizing());
+    },
+    onViewportChange() {
+      applyBoardSizing();
+      if (state.stage === 'fan_draw') {
+        renderFanCards();
+      }
+      if (propsController && typeof propsController.resizeCanvas === 'function') {
+        propsController.resizeCanvas();
+      }
     },
     openSpreadModal,
     resetToDeckStage,

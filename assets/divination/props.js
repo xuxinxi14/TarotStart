@@ -121,17 +121,18 @@ window.TAROT_ALTAR_PROPS = (() => {
 
     function spawnCenterRipples() {
       if (!smokeCanvas) return;
-      const cRect = smokeCanvas.getBoundingClientRect();
-      if (cRect.width < 10) return;
-      const cx = cRect.width * 0.5;
-      const cy = cRect.height * 0.5;
+      const cw = smokeCanvas.clientWidth;
+      const ch = smokeCanvas.clientHeight;
+      if (cw < 10 || ch < 10) return;
+      const cx = cw * 0.5;
+      const cy = ch * 0.5;
       [0, 0.34, 0.68].forEach((delay) => {
         ripples.push({
           x: cx,
           y: cy,
           age: -delay,
           maxAge: 2.9,
-          maxR: Math.max(cRect.width, cRect.height) * 0.44,
+          maxR: Math.max(cw, ch) * 0.44,
         });
       });
       ensureAnimLoop();
@@ -275,11 +276,12 @@ window.TAROT_ALTAR_PROPS = (() => {
 
     function resizeCanvas() {
       if (!smokeCanvas) return;
-      const rect = smokeCanvas.getBoundingClientRect();
-      if (rect.width < 10 || rect.height < 10) return;
+      const cw = smokeCanvas.clientWidth;
+      const ch = smokeCanvas.clientHeight;
+      if (cw < 10 || ch < 10) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = Math.round(rect.width * dpr);
-      const h = Math.round(rect.height * dpr);
+      const w = Math.round(cw * dpr);
+      const h = Math.round(ch * dpr);
       if (smokeCanvas.width !== w || smokeCanvas.height !== h) {
         smokeCanvas.width = w;
         smokeCanvas.height = h;
@@ -349,24 +351,25 @@ window.TAROT_ALTAR_PROPS = (() => {
           return g;
         };
 
+        const s = Math.max(0.56, Math.min(1.0, w / 1280));
         // Pass 1: Wide soft atmospheric mist veil (single smooth path + gaussian blur -> zero segments!)
-        ctx.filter = 'blur(14px)';
+        ctx.filter = `blur(${(14 * s).toFixed(1)}px)`;
         ctx.strokeStyle = makeGrad(0.24 * vis);
-        ctx.lineWidth = 34 * rb.width;
+        ctx.lineWidth = 34 * s * rb.width;
         traceSmoothPath();
         ctx.stroke();
 
         // Pass 2: Silky translucent ribbon curl
-        ctx.filter = 'blur(4.5px)';
+        ctx.filter = `blur(${(4.5 * s).toFixed(1)}px)`;
         ctx.strokeStyle = makeGrad(0.28 * vis);
-        ctx.lineWidth = 10 * rb.width;
+        ctx.lineWidth = 10 * s * rb.width;
         traceSmoothPath();
         ctx.stroke();
 
         // Pass 3: Fine luminous inner silk filament
-        ctx.filter = 'blur(1.2px)';
+        ctx.filter = `blur(${(1.2 * s).toFixed(1)}px)`;
         ctx.strokeStyle = makeGrad(0.32 * vis);
-        ctx.lineWidth = 2.2 * rb.width;
+        ctx.lineWidth = 2.2 * s * rb.width;
         traceSmoothPath();
         ctx.stroke();
       }
@@ -573,6 +576,7 @@ window.TAROT_ALTAR_PROPS = (() => {
       renderInstrumentsTray,
       strikeBowl,
       setActive,
+      resizeCanvas,
     };
   }
 
